@@ -15,7 +15,7 @@ import {
 } from './config/database.config';
 // import { TypeOrmModule } from '@nestjs/typeorm'; // Uncomment if using TypeORM with PostgreSQL or MySQL
 import { TypeConfigService } from './config/typed-config.service';
-import { MongooseModule } from '@nestjs/mongoose';
+// import { MongooseModule } from '@nestjs/mongoose';
 import { Task } from './tasks/entity/task.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
@@ -40,13 +40,13 @@ import { UserModule } from './users/users.module';
 
       })
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('mongo.connectionString'),
-      })
-    }),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     uri: configService.get<string>('mongo.connectionString'),
+    //   })
+    // }),
 
     ConfigModule.forRoot({
       isGlobal: true,

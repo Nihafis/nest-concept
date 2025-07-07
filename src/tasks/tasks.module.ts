@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
-import { MongooseModule } from '@nestjs/mongoose';
+// import { MongooseModule } from '@nestjs/mongoose';
 import { Task as TaskMongo, TaskSchema } from './schema/task.schema';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,12 +13,12 @@ import { TaskLabel as TaskLabelPg } from './entity/task-label.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([TaskPg, TaskLabelPg]),
-    MongooseModule.forFeature([
-      { name: TaskMongo.name, schema: TaskSchema },
-      { name: TaskLabelMongo.name, schema: TaskLabelSchema },
-      { name: UserMongo.name, schema: UserSchema },
+    // MongooseModule.forFeature([
+    //   { name: TaskMongo.name, schema: TaskSchema },
+    //   { name: TaskLabelMongo.name, schema: TaskLabelSchema },
+    //   { name: UserMongo.name, schema: UserSchema },
 
-    ])
+    // ])
 
   ],
   controllers: [TasksController],

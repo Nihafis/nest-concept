@@ -25,14 +25,14 @@ export class TasksService {
         @InjectRepository(TaskPg)
         private readonly tasksRepositoryPg: Repository<TaskPg>, // Assuming you are using TypeORM with a repository pattern
 
-        @InjectModel(TaskMongo.name)// Injecting the MongoDB repository
-        private readonly taskMongo: Model<TaskMongo>, // Assuming you are using TypeORM with a repository pattern
+        // @InjectModel(TaskMongo.name)// Injecting the MongoDB repository
+        // private readonly taskMongo: Model<TaskMongo>, // Assuming you are using TypeORM with a repository pattern
 
         @InjectRepository(TaskLabelPg)
         private readonly labelRepositoryPg: Repository<TaskLabelPg>,
 
-        @InjectModel(TaskLabelMongo.name) // Injecting the TaskLabel model for MongoDB
-        private readonly taskLabelMongo: Model<TaskLabelMongo>, // Assuming you are using Mongoose for MongoDB
+        // @InjectModel(TaskLabelMongo.name) // Injecting the TaskLabel model for MongoDB
+        // private readonly taskLabelMongo: Model<TaskLabelMongo>, // Assuming you are using Mongoose for MongoDB
 
     ) { }
 
@@ -102,17 +102,19 @@ export class TasksService {
 
     public async findOne(id: string, source: string): Promise<TaskPg | TaskMongo | null> {
         let task: TaskPg | TaskMongo | null;
-        if (source === 'mongo') {
-            task = await this.taskMongo.findById({
-                _id: new Types.ObjectId(id) // Convert string ID to ObjectId for MongoDB
-            }).populate('labels').exec(); // Assuming you want to populate labels   
+        // if (source === 'mongo') {
+        //     task = await this.taskMongo.findById({
+        //         _id: new Types.ObjectId(id) // Convert string ID to ObjectId for MongoDB
+        //     }).populate('labels').exec(); // Assuming you want to populate labels   
 
-        } else {
-            task = await this.tasksRepositoryPg.findOne({
-                where: { id },
-                relations: ['labels'] // Assuming you want to load labels as well
-            });
-        }
+        // }
+        //  else 
+        //  {
+        task = await this.tasksRepositoryPg.findOne({
+            where: { id },
+            relations: ['labels'] // Assuming you want to load labels as well
+        });
+        // }
         return task
 
     }
@@ -121,25 +123,26 @@ export class TasksService {
         if (createTaskDto.labels) {
             createTaskDto.labels = this.getUniqueLabels(createTaskDto.labels)
         }
-        if (source === 'mongo') {
-            const { labels, ...taskData } = createTaskDto;
-            const task = await this.taskMongo.create(taskData);
-            let labelIds: Types.ObjectId[] = []; // Initialize an empty array for label IDs
-            if (labels && labels.length > 0) {
-                const createdLabels = await this.taskLabelMongo.insertMany(labels.map(label => ({
-                    ...label, taskId: task._id
-                })));
-                labelIds = createdLabels.map(label => label._id);
-            }
-            task.labels = labelIds as []; // Assuming labels is an array of ObjectIds in MongoDB
-            await task.save(); // Save the task with the new labels
-            return task;
-        } else {
-            // await this.tasksRepositoryPg.create({
-            // })
-            return await this.tasksRepositoryPg.save(createTaskDto)
+        // if (source === 'mongo') {
+        //     const { labels, ...taskData } = createTaskDto;
+        //     const task = await this.taskMongo.create(taskData);
+        //     let labelIds: Types.ObjectId[] = []; // Initialize an empty array for label IDs
+        //     if (labels && labels.length > 0) {
+        //         const createdLabels = await this.taskLabelMongo.insertMany(labels.map(label => ({
+        //             ...label, taskId: task._id
+        //         })));
+        //         labelIds = createdLabels.map(label => label._id);
+        //     }
+        //     task.labels = labelIds as []; // Assuming labels is an array of ObjectIds in MongoDB
+        //     await task.save(); // Save the task with the new labels
+        //     return task;
+        // } 
+        // else {
+        // await this.tasksRepositoryPg.create({
+        // })
+        return await this.tasksRepositoryPg.save(createTaskDto)
 
-        }
+        // }
 
     }
 
@@ -152,65 +155,67 @@ export class TasksService {
             updateTaskDto.labels = this.getUniqueLabels(updateTaskDto.labels)
         }
 
-        if (source === 'mongo') {
-            const taskId = (task as any)._id ?? (task as any).id;
+        // if (source === 'mongo') {
+        //     const taskId = (task as any)._id ?? (task as any).id;
 
-            let labelIds: Types.ObjectId[] | undefined = undefined;
-            if (updateTaskDto.labels) {
-                // Update each label's name by its _id
-                await Promise.all(
-                    updateTaskDto.labels.map(label =>
-                        this.taskLabelMongo.findByIdAndUpdate(
-                            label.labelId,
-                            { name: label.name },
-                            { new: true }
-                        )
-                    )
-                );
-                // Collect label IDs for the task
-                labelIds = updateTaskDto.labels.map(label => new Types.ObjectId(label.labelId));
-            }
+        //     let labelIds: Types.ObjectId[] | undefined = undefined;
+        //     if (updateTaskDto.labels) {
+        //         // Update each label's name by its _id
+        //         await Promise.all(
+        //             updateTaskDto.labels.map(label =>
+        //                 this.taskLabelMongo.findByIdAndUpdate(
+        //                     label.labelId,
+        //                     { name: label.name },
+        //                     { new: true }
+        //                 )
+        //             )
+        //         );
+        //         // Collect label IDs for the task
+        //         labelIds = updateTaskDto.labels.map(label => new Types.ObjectId(label.labelId));
+        //     }
 
-            // Update the task with the new label ObjectIds and other properties
-            await this.taskMongo.findByIdAndUpdate(
-                taskId,
-                {
-                    ...updateTaskDto,
-                    labels: labelIds
+        //     // Update the task with the new label ObjectIds and other properties
+        //     await this.taskMongo.findByIdAndUpdate(
+        //         taskId,
+        //         {
+        //             ...updateTaskDto,
+        //             labels: labelIds
 
-                },
-                { new: true }
-            ).exec();
+        //         },
+        //         { new: true }
+        //     ).exec();
 
-            return await this.taskMongo.findById(taskId).populate('labels').exec();
-        } else {
-            // PostgreSQL
+        //     return await this.taskMongo.findById(taskId).populate('labels').exec();
+        // } 
+        // else {
+        // PostgreSQL
 
-            Object.assign(task, updateTaskDto);
-            return await this.tasksRepositoryPg.save(task as TaskPg);
-        }
+        Object.assign(task, updateTaskDto);
+        return await this.tasksRepositoryPg.save(task as TaskPg);
+        // }
     }
 
 
     public async addLabels(task: TaskMongo | TaskPg, labelDtos: CreateTaskLabelDto[], source: string): Promise<TaskMongo | TaskPg | null> {
-        if (source === 'mongo') {
-            return null
-        } else {
-            // 1) dup DTOs
-            // 2) get existing names
-            // 3) New labels aren't already existing one
-            // 4) We save new ones , only if there are any real new ones
-            const names = new Set(task.labels.map((label) => label.name))
+        // if (source === 'mongo') {
+        //     return null
+        // } 
+        // else {
+        // 1) dup DTOs
+        // 2) get existing names
+        // 3) New labels aren't already existing one
+        // 4) We save new ones , only if there are any real new ones
+        const names = new Set(task.labels.map((label) => label.name))
 
-            const labels = this.getUniqueLabels(labelDtos)
-                .filter(dto => !names.has(dto.name))
-                .map((label) => this.labelRepositoryPg.create(label));
-            if (labels.length) {
-                task.labels = [...task.labels, ...labels] as any;
-                return await this.tasksRepositoryPg.save(task as TaskPg);
-            }
-            return task
+        const labels = this.getUniqueLabels(labelDtos)
+            .filter(dto => !names.has(dto.name))
+            .map((label) => this.labelRepositoryPg.create(label));
+        if (labels.length) {
+            task.labels = [...task.labels, ...labels] as any;
+            return await this.tasksRepositoryPg.save(task as TaskPg);
         }
+        return task
+        // }
     }
 
     public async removeLabel(task: TaskPg, labelsToRemove: string[]): Promise<TaskPg> {
@@ -243,14 +248,14 @@ export class TasksService {
 
 
     public async deleteTask(task: TaskPg | TaskMongo, source: string): Promise<void> {
-        if (source === 'mongo') {
-            await this.taskMongo.findOneAndDelete({ _id: (task as any)._id ?? (task as any).id });
+        // if (source === 'mongo') {
+        //     await this.taskMongo.findOneAndDelete({ _id: (task as any)._id ?? (task as any).id });
 
-        }
-        else {
-            await this.tasksRepositoryPg.delete((task as TaskPg).id);
+        // }
+        // else {
+        await this.tasksRepositoryPg.delete((task as TaskPg).id);
 
-        }
+        // }
     }
 
     private getUniqueLabels(labelDtos: CreateTaskLabelDto[]): CreateTaskLabelDto[] {
