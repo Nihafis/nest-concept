@@ -1,21 +1,33 @@
-# Use Node.js LTS image
-FROM node:20
+# Stage 1: Build stage
+FROM node:20 AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the code
+# Copy source code
 COPY . .
 
-# Build the app
+# Build the project
 RUN npm run build
 
-# Expose the port your app runs on (change if needed)
+
+# Stage 2: Production image
+FROM node:20-slim
+
+WORKDIR /app
+
+# Only copy required files for runtime
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy the built output from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Expose the app port
 EXPOSE 8080
 
-# Start the app
-CMD ["npm", "run", "start:prod"]
+# Run the app
+CMD ["node", "dist/main"]
