@@ -10,6 +10,9 @@ export const typeOrmConfig = registerAs('database', (): TypeOrmModuleOptions => 
     password: process.env.DB_PG_PASSWORD,
     database: process.env.DB_PG_NAME,
     synchronize: Boolean(process.env.DB_PG_SYNC ?? false),
+    ssl: {
+        rejectUnauthorized: false
+    }
 })
 )
 
@@ -17,4 +20,7 @@ export const typeOrmConfig = registerAs('database', (): TypeOrmModuleOptions => 
 export const MongooseConfig = registerAs('mongo', () => ({
     connectionString: `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
     // connectionString: process.env.DB_CONNECTION_STRING,
+    ssl: {
+        rejectUnauthorized: false
+    }
 })) 
