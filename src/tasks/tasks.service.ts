@@ -3,7 +3,7 @@ import { TaskStatus } from './task.model';
 import { CreateTaskDto, queryDto } from './create-task.dto';
 import { UpdateTaskDto } from './update-task.dto';
 import { WrongTaskStatusException } from './exceptions/wrong-task-status.exception';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Task as TaskPg } from './entity/task.entity';
 import { Task as TaskMongo } from './schema/task.schema';
 import { Model, Types } from 'mongoose';
@@ -38,12 +38,14 @@ export class TasksService {
 
     public async findAll(
         query: FindTaskParams,
-        pagination: PaginationParams
+        pagination: PaginationParams,
+        userId: string
 
     ): Promise<[TaskPg[], number]> {
         const queryBuilder = this.tasksRepositoryPg
             .createQueryBuilder('task')
             .leftJoinAndSelect('task.labels', 'labels')
+            .where('task.userId=:userId', { userId })
 
         if (query.status) {
             queryBuilder.andWhere('task.status=:status', { status: query.status })
@@ -71,7 +73,7 @@ export class TasksService {
 
         queryBuilder.skip(pagination.offset).take(pagination.limit);
 
-        console.log(queryBuilder.getSql());
+        // console.log(queryBuilder.getSql());
 
         return queryBuilder.getManyAndCount();
 

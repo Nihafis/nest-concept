@@ -8,6 +8,9 @@ import { AuthRequest } from '../auth.request';
 import { UserService } from '../user/user.service';
 // import { AuthGuard } from '../auth.guard';
 import { Public } from '../decorator/public.decorator';
+import { AdminResponse } from '../admin.response';
+import { Roles } from '../decorator/roles.decorator';
+import { Role } from '../role.enum';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,7 +32,7 @@ export class AuthController {
 
 
     @Post('login')
-      @Public()
+    @Public()
     async login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
         const accessToken = await this.authService.login(loginDto.email, loginDto.password)
 
@@ -48,9 +51,10 @@ export class AuthController {
         throw new NotFoundException();
     }
 
-
-    async adminOnly(){
-        
+    @Get('admin') //auth admin
+    @Roles(Role.ADMIN)
+    async adminOnly(): Promise<AdminResponse> {
+        return new AdminResponse({ message: 'This is for admin only' })
     }
 
 }

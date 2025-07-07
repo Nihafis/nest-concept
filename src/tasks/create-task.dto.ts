@@ -16,7 +16,7 @@ export class CreateTaskDto {
   @IsEnum(TaskStatus)
   status: TaskStatus;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   // @IsUUID()
   userId: string;
 
@@ -32,8 +32,9 @@ export class CreateTaskDto {
 
 export class queryDto {
   @IsString()
+  @IsOptional()
   @IsIn(['pg', 'mongo'])
-  source: 'pg' | 'mongo';
+  source?: 'pg' | 'mongo' = 'pg';
 
   @IsOptional()
   @IsEnum(TaskStatus)
